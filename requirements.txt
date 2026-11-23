@@ -1,0 +1,7 @@
+ultralytics==8.4.199
+opencv-python
+numpy
+pandas
+matplotlib
+tabulate
+imageio-ffmpeg
