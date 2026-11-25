@@ -126,7 +126,11 @@ def load_model(name: str):
     import torch
     from ultralytics import YOLO
     torch.set_num_threads(config.THREADS)
-    return YOLO(name)
+    weights = Path(name)
+    local_weights = config.ROOT / "models" / weights
+    if not weights.is_file() and local_weights.is_file():
+        weights = local_weights
+    return YOLO(str(weights))
 
 
 def class_map(model, class_names: list[str]) -> dict[int, int]:
@@ -166,4 +170,70 @@ def draw_boxes(img, boxes, labels, color=GREEN, thickness=2):
         cv2.rectangle(img, (p1[0], y0 - th - 4), (p1[0] + tw + 4, y0), color, -1)
         cv2.putText(img, text, (p1[0] + 2, y0 - 3), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                     (255, 255, 255), 1, cv2.LINE_AA)
+    return img
+
+
+
+# Kolory klas w formacie BGR
+CLASS_COLORS = {
+    "laptop": (0, 140, 255),       # pomarańczowy
+    "cell phone": (255, 0, 255),   # magenta
+    "keyboard": (0, 180, 255),     # bursztynowy
+    "mouse": (80, 80, 255),        # czerwony
+    "book": (180, 0, 180),         # fioletowy
+    "cup": (180, 100, 0),          # ciemnoniebieski
+    "default": (0, 200, 255)       # żółty
+}
+
+
+def draw_boxes_colored(img, boxes, scores, classes_idx, class_names):
+    """Rysuje kolorowe ramki i większe etykiety obiektów."""
+
+    for (x1, y1, x2, y2), score, cls_idx in zip(
+        boxes, scores, classes_idx
+    ):
+        cls_name = class_names[int(cls_idx)]
+        color = CLASS_COLORS.get(cls_name, CLASS_COLORS["default"])
+
+        x1, y1, x2, y2 = map(int, (x1, y1, x2, y2))
+
+        # Grubsza ramka
+        cv2.rectangle(
+            img, (x1, y1), (x2, y2),
+            color, 4
+        )
+
+        # Większy napis
+        label = f"{cls_name} {score:.2f}"
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        scale = 0.9
+        thickness = 2
+
+        (tw, th), baseline = cv2.getTextSize(
+            label, font, scale, thickness
+        )
+
+        text_y = max(y1, th + 12)
+
+        # Kolorowe tło etykiety
+        cv2.rectangle(
+            img,
+            (x1, text_y - th - 12),
+            (x1 + tw + 12, text_y + baseline),
+            color,
+            -1
+        )
+
+        # Biały napis
+        cv2.putText(
+            img,
+            label,
+            (x1 + 6, text_y - 6),
+            font,
+            scale,
+            (255, 255, 255),
+            thickness,
+            cv2.LINE_AA
+        )
+
     return img

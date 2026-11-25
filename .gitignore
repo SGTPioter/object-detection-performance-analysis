@@ -19,3 +19,7 @@ data/
 
 # Jupyter Notebook (jeśli używasz)
 .ipynb_checkpoints/
+
+# Podglądy robocze i automatyczne kopie pomiarów
+tmp/
+results/benchmarks/archive/
