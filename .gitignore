@@ -23,3 +23,5 @@ data/
 # Podglądy robocze i automatyczne kopie pomiarów
 tmp/
 results/benchmarks/archive/
+
+*.mp4
